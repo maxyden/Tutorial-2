@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro; 
+  
 
 public class PlayerScript : MonoBehaviour
 {
@@ -9,15 +11,46 @@ public class PlayerScript : MonoBehaviour
 
     public float speed;
 
-    public Text score;
+   public TextMeshProUGUI countText;
+    public TextMeshProUGUI livesText;
+    public GameObject winTextObject;
+    public GameObject loseTextObject;
+    public GameObject Player;
 
-    private int scoreValue = 0;
+     private Rigidbody rb;
+    private int count;
+    private int lives;
+
+    public AudioClip musicClipOne;
+
+     public AudioClip musicClipTwo;
+
+    public AudioSource musicSource;
+
+    Animator anim;
+
+  
+
 
     // Start is called before the first frame update
     void Start()
     {
         rd2d = GetComponent<Rigidbody2D>();
-        score.text = scoreValue.ToString();
+        count = 0;
+
+        lives = 3;
+
+        SetCountText();
+        winTextObject.SetActive(false);
+
+        SetCountText();
+        loseTextObject.SetActive(false);
+
+        musicSource.clip = musicClipOne;
+        musicSource.Play();
+        musicSource.loop = true;
+
+        anim = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -28,14 +61,43 @@ public class PlayerScript : MonoBehaviour
 
         rd2d.AddForce(new Vector2(hozMovement * speed, vertMovement * speed));
     }
+    void update ()
+    {
+         if (Input.GetKeyUp(KeyCode.E))
 
+        {
+            anim.SetFloat("State", 1);
+
+         }
+
+        if (Input.GetKeyUp(KeyCode.A))
+        {
+            anim.SetInteger("State", 1);
+        }
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            anim.SetFloat("State", 2);
+        }
+
+        if (Input.GetKeyUp(KeyCode.A))
+        {
+            anim.SetInteger("State", 0);
+        }
+    }
     private void OnCollisionEnter2D(Collision2D collision)
     {
        if (collision.collider.tag == "Coin")
         {
-            scoreValue += 1;
-            score.text = scoreValue.ToString();
-            Destroy(collision.collider.gameObject);
+            count = count + 1;
+            SetCountText();
+            Destroy(collision.collider.gameObject); 
+
+        }
+        else if (collision.collider.tag == "Enemy")
+        {
+            lives = lives - 1;
+            SetCountText();
+            Destroy (collision.collider.gameObject); 
         }
 
     }
@@ -46,8 +108,42 @@ public class PlayerScript : MonoBehaviour
         {
             if (Input.GetKey(KeyCode.W))
             {
-                rd2d.AddForce(new Vector2(0, 3), ForceMode2D.Impulse); //the 3 in this line of code is the player's "jumpforce," and you change that number to get different jump behaviors.  You can also create a public variable for it and then edit it in the inspector.
+                rd2d.AddForce(new Vector2(0, 2), ForceMode2D.Impulse); 
             }
         }
+    }
+
+     void SetCountText()
+    {
+        countText.text = "Coins: " + count.ToString();
+        if (count == 4)
+        {
+            transform.position = new Vector3(63.0f,0.0f);
+            lives = 3;
+        }
+        else if (count == 8)
+        {
+            winTextObject.SetActive(true);
+            Player.SetActive(false);
+
+            musicSource.clip = musicClipOne;
+            musicSource.Stop();
+
+            musicSource.clip = musicClipTwo;
+            musicSource.Play();
+             musicSource.loop = false;
+        }
+        livesText.text = "lives: " + lives.ToString();
+        if (lives == 0)
+        {
+            musicSource.clip = musicClipOne;
+            musicSource.Stop();
+
+
+            loseTextObject.SetActive(true);
+            Player.SetActive(false);
+        }
+
+
     }
 }
